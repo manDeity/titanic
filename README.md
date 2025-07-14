@@ -1,2 +1,2 @@
 # titanic
-learnign something here 
+learning something here 
