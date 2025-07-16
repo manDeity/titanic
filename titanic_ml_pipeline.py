@@ -9,9 +9,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 
 import warnings
+import joblib
 warnings.filterwarnings("ignore")
-
-# loading the dataset 
 
 def load_data():
     url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
@@ -43,6 +42,10 @@ def evaluate_model(model, X_test, y_test):
     print("Accuracy Score:", accuracy_score(y_test, y_pred))
     print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 
+def save_model(model, path="titanic_model.pkl"):
+    joblib.dump(model, path)
+    print(f"✅ Model saved to: {path}")
+
 def main():
     df = load_data()
     print("Initial Shape:", df.shape)
@@ -57,6 +60,7 @@ def main():
 
     model = train_model(X_train, y_train)
     evaluate_model(model, X_test, y_test)
+    save_model(model)
 
 if __name__ == "__main__":
     main()
