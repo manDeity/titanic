@@ -20,20 +20,41 @@ def load_data():
 def preprocess_data(df):
     df['Age'].fillna(df['Age'].median(), inplace=True)
     df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
-    df.drop(['Cabin', 'Name', 'Ticket', 'PassengerId'], axis=1, inplace=True)
-    
-    df['Sex'] = LabelEncoder().fit_transform(df['Sex'])
-    df['Embarked'] = LabelEncoder().fit_transform(df['Embarked'])
 
+    # Extract Title
+    df['Title'] = df['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
+    df['Title'] = df['Title'].replace(['Lady', 'Countess','Capt', 'Col',
+                                       'Don', 'Dr', 'Major', 'Rev', 'Sir', 
+                                       'Jonkheer', 'Dona'], 'Rare')
+    df['Title'] = df['Title'].replace('Mlle', 'Miss')
+    df['Title'] = df['Title'].replace('Ms', 'Miss')
+    df['Title'] = df['Title'].replace('Mme', 'Mrs')
+
+    # Drop unused columns
+    df.drop(['Cabin', 'Ticket', 'PassengerId', 'Name'], axis=1, inplace=True)
+
+    # Encode categorical columns
+    for col in ['Sex', 'Embarked', 'Title']:
+        df[col] = LabelEncoder().fit_transform(df[col])
+
+    # Feature engineering
+    df['FamilySize'] = df['SibSp'] + df['Parch'] + 1
+    df['IsAlone'] = 1  # default
+    df.loc[df['FamilySize'] > 1, 'IsAlone'] = 0
+
+    # Scale numerical features
     scaler = StandardScaler()
     df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
-    
+
     return df
 
+
+from sklearn.ensemble import RandomForestClassifier #added random forest classifier instead of logistic regression
 def train_model(X_train, y_train):
-    model = LogisticRegression()
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     return model
+
 
 def evaluate_model(model, X_test, y_test):
     y_pred = model.predict(X_test)
